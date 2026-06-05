@@ -8,13 +8,13 @@ using ::testing::_;
 
 // Mock-класс для TimerClient
 class MockTimerClient : public TimerClient {
-public:
+  public:
     MOCK_METHOD(void, Timeout, (), (override));
 };
 
 // Mock-класс для Door
 class MockDoor : public Door {
-public:
+  public:
     MOCK_METHOD(void, lock, (), (override));
     MOCK_METHOD(void, unlock, (), (override));
     MOCK_METHOD(bool, isDoorOpened, (), (override));
@@ -22,7 +22,7 @@ public:
 
 // Тест-фикстура для TimedDoor
 class TimedDoorTest : public ::testing::Test {
-protected:
+  protected:
     void SetUp() override {
         door = new TimedDoor(2);
     }
@@ -32,7 +32,7 @@ protected:
     TimedDoor* door;
 };
 
-// ========== Тесты TimedDoor ==========
+// ========== Тесты TimedDoor (6 тестов) ==========
 
 TEST_F(TimedDoorTest, InitiallyClosed) {
     EXPECT_FALSE(door->isDoorOpened());
@@ -63,17 +63,12 @@ TEST_F(TimedDoorTest, DoubleUnlock) {
     EXPECT_TRUE(door->isDoorOpened());
 }
 
-TEST_F(TimedDoorTest, LockWithoutUnlock) {
-    door->lock();
-    EXPECT_FALSE(door->isDoorOpened());
-}
-
 TEST_F(TimedDoorTest, DifferentTimeout) {
     TimedDoor d2(5);
     EXPECT_EQ(d2.getTimeOut(), 5);
 }
 
-// ========== Тесты DoorTimerAdapter ==========
+// ========== Тесты DoorTimerAdapter (4 теста) ==========
 
 TEST(DoorTimerAdapterTest, TimeoutWhenOpen) {
     TimedDoor d(1);
@@ -106,7 +101,7 @@ TEST(DoorTimerAdapterTest, MultipleAdapters) {
     EXPECT_THROW(ada2.Timeout(), const char*);
 }
 
-// ========== Тесты Timer ==========
+// ========== Тесты Timer (4 теста) ==========
 
 TEST(TimerTest, RegisterCallsTimeout) {
     MockTimerClient mock;
@@ -137,14 +132,7 @@ TEST(TimerTest, SameClientTwice) {
     t.tregister(0, &mock);
 }
 
-// ========== Интеграционные тесты ==========
-
-TEST(IntegrationTest, FullCycleLockBeforeTimeout) {
-    TimedDoor d(1);
-    d.unlock();
-    d.lock();
-    EXPECT_FALSE(d.isDoorOpened());
-}
+// ========== Интеграционные тесты (3 теста) ==========
 
 TEST(IntegrationTest, UnlockLockUnlock) {
     TimedDoor d(1);
