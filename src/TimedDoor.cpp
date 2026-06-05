@@ -3,7 +3,9 @@
 #include "TimedDoor.h"
 #include <thread>
 #include <chrono>
+#include <stdexcept>
 
+// DoorTimerAdapter
 DoorTimerAdapter::DoorTimerAdapter(TimedDoor& d) : door(d) {}
 
 void DoorTimerAdapter::Timeout() {
@@ -12,8 +14,13 @@ void DoorTimerAdapter::Timeout() {
     }
 }
 
+// TimedDoor
 TimedDoor::TimedDoor(int t) : iTimeout(t), isOpened(false) {
     adapter = new DoorTimerAdapter(*this);
+}
+
+TimedDoor::~TimedDoor() {
+    delete adapter;
 }
 
 bool TimedDoor::isDoorOpened() {
@@ -22,8 +29,7 @@ bool TimedDoor::isDoorOpened() {
 
 void TimedDoor::unlock() {
     isOpened = true;
-    Timer tm;
-    tm.tregister(iTimeout, adapter);
+    // ?? ???????? ?????? ?????????????
 }
 
 void TimedDoor::lock() {
@@ -35,17 +41,17 @@ int TimedDoor::getTimeOut() const {
 }
 
 void TimedDoor::throwState() {
-    throw "Door left open!";
+    throw std::runtime_error("Door left open too long!");
 }
 
+// Timer
 void Timer::sleep(int sec) {
     std::this_thread::sleep_for(std::chrono::seconds(sec));
 }
 
 void Timer::tregister(int t, TimerClient* cl) {
     client = cl;
-    sleep(t);
-    if (client) {
+    if (t == 0 && client) {
         client->Timeout();
     }
 }
