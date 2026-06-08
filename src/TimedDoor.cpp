@@ -39,16 +39,18 @@ int TimedDoor::getTimeOut() const {
 }
 
 void TimedDoor::throwState() {
-    throw std::runtime_error("Door timeout!");
+    throw "Door left open!";
 }
+
+Timer::Timer() : client(nullptr) {}
 
 void Timer::sleep(int sec) {
     std::this_thread::sleep_for(std::chrono::seconds(sec));
 }
 
-void Timer::tregister(int sec, TimerClient* cl) {
+void Timer::tregister(int t, TimerClient* cl) {
     client = cl;
-    if (sec == 0 && client) {
+    if (t == 0 && client) {
         client->Timeout();
     }
 }

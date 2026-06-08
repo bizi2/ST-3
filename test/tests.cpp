@@ -46,14 +46,14 @@ TEST_F(TimedDoorTest, GetTimeoutValue) {
 }
 
 TEST_F(TimedDoorTest, ThrowException) {
-    EXPECT_THROW(door->throwState(), std::runtime_error);
+    EXPECT_THROW(door->throwState(), const char*);
 }
 
 TEST(DoorTimerAdapterTest, TimeoutWhenOpen) {
     TimedDoor d(1);
     DoorTimerAdapter ada(d);
     d.unlock();
-    EXPECT_THROW(ada.Timeout(), std::runtime_error);
+    EXPECT_THROW(ada.Timeout(), const char*);
 }
 
 TEST(DoorTimerAdapterTest, NoTimeoutWhenClosed) {
@@ -73,9 +73,4 @@ TEST(TimerTest, RegisterCallsTimeout) {
 TEST(TimerTest, NullClientSafe) {
     Timer t;
     EXPECT_NO_THROW(t.tregister(0, nullptr));
-}
-
-int main(int argc, char** argv) {
-    ::testing::InitGoogleTest(&argc, argv);
-    return RUN_ALL_TESTS();
 }
