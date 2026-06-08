@@ -49,70 +49,85 @@ TEST_F(TimedDoorTest, ThrowException) {
     EXPECT_THROW(door->throwState(), const char*);
 }
 
-TEST(DoorTimerAdapterTest, TimeoutWhenOpen) {
-    TimedDoor d(1);
-    DoorTimerAdapter ada(d);
-    d.unlock();
-    EXPECT_THROW(ada.Timeout(), const char*);
-}
-
-TEST(DoorTimerAdapterTest, NoTimeoutWhenClosed) {
-    TimedDoor d(1);
-    DoorTimerAdapter ada(d);
-    d.lock();
-    EXPECT_NO_THROW(ada.Timeout());
-}
-
-TEST(TimerTest, RegisterCallsTimeout) {
-    MockTimerClient mock;
-    EXPECT_CALL(mock, Timeout()).Times(1);
-    Timer t;
-    t.tregister(0, &mock);
-}
-
-TEST(TimerTest, NullClientSafe) {
-    Timer t;
-    EXPECT_NO_THROW(t.tregister(0, nullptr));
-}
-
-TEST(TimedDoorTest, DoubleUnlock) {
+TEST_F(TimedDoorTest, DoubleUnlock) {
     TimedDoor d(1);
     d.unlock();
     d.unlock();
     EXPECT_TRUE(d.isDoorOpened());
 }
 
-TEST(TimedDoorTest, LockWithoutUnlock) {
+TEST_F(TimedDoorTest, LockWithoutUnlock) {
     TimedDoor d(1);
     d.lock();
     EXPECT_FALSE(d.isDoorOpened());
 }
 
-TEST(TimedDoorTest, DifferentTimeout) {
+TEST_F(TimedDoorTest, DifferentTimeout) {
     TimedDoor d1(1);
     TimedDoor d2(5);
     EXPECT_EQ(d1.getTimeOut(), 1);
     EXPECT_EQ(d2.getTimeOut(), 5);
 }
 
-TEST(DoorTimerAdapterTest, MultipleAdapters) {
-    TimedDoor d(1);
-    DoorTimerAdapter ada1(d);
-    DoorTimerAdapter ada2(d);
-    d.unlock();
+class DoorTimerAdapterTest : public ::testing::Test {
+ protected:
+    void SetUp() override { door = new TimedDoor(1); }
+    void TearDown() override { delete door; }
+    TimedDoor* door;
+};
+
+TEST_F(DoorTimerAdapterTest, TimeoutWhenOpen) {
+    DoorTimerAdapter ada(*door);
+    door->unlock();
+    EXPECT_THROW(ada.Timeout(), const char*);
+}
+
+TEST_F(DoorTimerAdapterTest, NoTimeoutWhenClosed) {
+    DoorTimerAdapter ada(*door);
+    door->lock();
+    EXPECT_NO_THROW(ada.Timeout());
+}
+
+TEST_F(DoorTimerAdapterTest, MultipleAdapters) {
+    DoorTimerAdapter ada1(*door);
+    DoorTimerAdapter ada2(*door);
+    door->unlock();
     EXPECT_THROW(ada1.Timeout(), const char*);
     EXPECT_THROW(ada2.Timeout(), const char*);
 }
 
-TEST(IntegrationTest, UnlockLockUnlock) {
-    TimedDoor d(1);
-    d.unlock();
-    d.lock();
-    d.unlock();
-    EXPECT_TRUE(d.isDoorOpened());
+class TimerTest : public ::testing::Test {
+ protected:
+    void SetUp() override { timer = new Timer(); }
+    void TearDown() override { delete timer; }
+    Timer* timer;
+};
+
+TEST_F(TimerTest, RegisterCallsTimeout) {
+    MockTimerClient mock;
+    EXPECT_CALL(mock, Timeout()).Times(1);
+    timer->tregister(0, &mock);
 }
 
-TEST(IntegrationTest, TwoDoorsIndependent) {
+TEST_F(TimerTest, NullClientSafe) {
+    EXPECT_NO_THROW(timer->tregister(0, nullptr));
+}
+
+class IntegrationTest : public ::testing::Test {
+ protected:
+    void SetUp() override { door = new TimedDoor(1); }
+    void TearDown() override { delete door; }
+    TimedDoor* door;
+};
+
+TEST_F(IntegrationTest, UnlockLockUnlock) {
+    door->unlock();
+    door->lock();
+    door->unlock();
+    EXPECT_TRUE(door->isDoorOpened());
+}
+
+TEST_F(IntegrationTest, TwoDoorsIndependent) {
     TimedDoor d1(1);
     TimedDoor d2(2);
     d1.unlock();
