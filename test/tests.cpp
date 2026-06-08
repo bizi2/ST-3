@@ -74,3 +74,51 @@ TEST(TimerTest, NullClientSafe) {
     Timer t;
     EXPECT_NO_THROW(t.tregister(0, nullptr));
 }
+
+TEST(TimedDoorTest, DoubleUnlock) {
+    TimedDoor d(1);
+    d.unlock();
+    d.unlock();
+    EXPECT_TRUE(d.isDoorOpened());
+}
+
+TEST(TimedDoorTest, LockWithoutUnlock) {
+    TimedDoor d(1);
+    d.lock();
+    EXPECT_FALSE(d.isDoorOpened());
+}
+
+TEST(TimedDoorTest, DifferentTimeout) {
+    TimedDoor d1(1);
+    TimedDoor d2(5);
+    EXPECT_EQ(d1.getTimeOut(), 1);
+    EXPECT_EQ(d2.getTimeOut(), 5);
+}
+
+TEST(DoorTimerAdapterTest, MultipleAdapters) {
+    TimedDoor d(1);
+    DoorTimerAdapter ada1(d);
+    DoorTimerAdapter ada2(d);
+    d.unlock();
+    EXPECT_THROW(ada1.Timeout(), const char*);
+    EXPECT_THROW(ada2.Timeout(), const char*);
+}
+
+TEST(IntegrationTest, UnlockLockUnlock) {
+    TimedDoor d(1);
+    d.unlock();
+    d.lock();
+    d.unlock();
+    EXPECT_TRUE(d.isDoorOpened());
+}
+
+TEST(IntegrationTest, TwoDoorsIndependent) {
+    TimedDoor d1(1);
+    TimedDoor d2(2);
+    d1.unlock();
+    d2.unlock();
+    EXPECT_TRUE(d1.isDoorOpened());
+    EXPECT_TRUE(d2.isDoorOpened());
+    EXPECT_EQ(d1.getTimeOut(), 1);
+    EXPECT_EQ(d2.getTimeOut(), 2);
+}
