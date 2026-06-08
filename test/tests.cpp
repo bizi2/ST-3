@@ -1,4 +1,5 @@
 // Copyright 2025 UNN-CS
+// Nazyrov A.A.
 
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
@@ -20,12 +21,8 @@ class MockDoor : public Door {
 
 class TimedDoorTest : public ::testing::Test {
  protected:
-    void SetUp() override {
-        door = new TimedDoor(2);
-    }
-    void TearDown() override {
-        delete door;
-    }
+    void SetUp() override { door = new TimedDoor(3); }
+    void TearDown() override { delete door; }
     TimedDoor* door;
 };
 
@@ -33,30 +30,30 @@ TEST_F(TimedDoorTest, InitiallyClosed) {
     EXPECT_FALSE(door->isDoorOpened());
 }
 
-TEST_F(TimedDoorTest, UnlockOpens) {
+TEST_F(TimedDoorTest, UnlockOpensDoor) {
     door->unlock();
     EXPECT_TRUE(door->isDoorOpened());
 }
 
-TEST_F(TimedDoorTest, LockCloses) {
+TEST_F(TimedDoorTest, LockClosesDoor) {
     door->unlock();
     door->lock();
     EXPECT_FALSE(door->isDoorOpened());
 }
 
-TEST_F(TimedDoorTest, GetTimeOutWorks) {
-    EXPECT_EQ(door->getTimeOut(), 2);
+TEST_F(TimedDoorTest, GetTimeoutValue) {
+    EXPECT_EQ(door->getTimeOut(), 3);
 }
 
-TEST_F(TimedDoorTest, ThrowStateThrows) {
-    EXPECT_THROW(door->throwState(), const char*);
+TEST_F(TimedDoorTest, ThrowException) {
+    EXPECT_THROW(door->throwState(), std::runtime_error);
 }
 
 TEST(DoorTimerAdapterTest, TimeoutWhenOpen) {
     TimedDoor d(1);
     DoorTimerAdapter ada(d);
     d.unlock();
-    EXPECT_THROW(ada.Timeout(), const char*);
+    EXPECT_THROW(ada.Timeout(), std::runtime_error);
 }
 
 TEST(DoorTimerAdapterTest, NoTimeoutWhenClosed) {
@@ -68,21 +65,17 @@ TEST(DoorTimerAdapterTest, NoTimeoutWhenClosed) {
 
 TEST(TimerTest, RegisterCallsTimeout) {
     MockTimerClient mock;
-    EXPECT_CALL(mock, Timeout()).Times(0);
+    EXPECT_CALL(mock, Timeout()).Times(1);
     Timer t;
     t.tregister(0, &mock);
 }
 
-TEST(TimerTest, NullClientNoCrash) {
+TEST(TimerTest, NullClientSafe) {
     Timer t;
     EXPECT_NO_THROW(t.tregister(0, nullptr));
 }
 
-TEST(IntegrationTest, SimpleDoorWorkflow) {
-    TimedDoor d(1);
-    d.unlock();
-    EXPECT_TRUE(d.isDoorOpened());
-    d.lock();
-    EXPECT_FALSE(d.isDoorOpened());
+int main(int argc, char** argv) {
+    ::testing::InitGoogleTest(&argc, argv);
+    return RUN_ALL_TESTS();
 }
-
